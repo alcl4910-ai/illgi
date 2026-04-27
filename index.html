@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>일기정돈 쓰면서 살자</title>
+    <title>일기를 쓰자 일기를 써</title> 
+    
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
 
     <style>
@@ -18,7 +19,6 @@
             margin: 0; 
         }
 
-        /* 암호 화면 */
         #login-screen { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: #f4f2ee; 
@@ -36,8 +36,8 @@
             border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; font-weight: 600;
         }
 
-        /* 메인 레이아웃 */
-        .app-wrapper { display: none; gap: 25px; width: 1050px; height: 650px; }
+        .app-wrapper { display: none; gap: 25px; width: 1050px; height: 700px; } /* 높이 살짝 늘림 */
+        
         .card { 
             background: white; 
             border-radius: 24px; 
@@ -47,13 +47,13 @@
             flex-direction: column; 
         }
 
-        .calendar-side { flex: 1; }
+        .calendar-side { flex: 1; display: flex; flex-direction: column; }
         .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .year-select { font-size: 1.2rem; font-weight: 700; color: #555; border: none; outline: none; background: transparent; cursor: pointer; }
         .month-control { display: flex; align-items: center; gap: 15px; font-size: 1.4rem; font-weight: 700; color: #8a7360; }
         .month-control button { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #8a7360; }
 
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center; flex-grow: 1; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center; margin-bottom: 15px; }
         .day-name { font-weight: 600; color: #999; font-size: 0.9rem; margin-bottom: 10px; }
         .sun { color: #d97777; } .sat { color: #6b8bb8; }
         
@@ -69,13 +69,42 @@
             border-radius: 50%; position: absolute; bottom: 2px; 
         }
 
-        .backup-area { margin-top: 20px; display: flex; gap: 10px; }
+        /* 검색 영역 스타일 */
+        .search-area { 
+            margin-top: auto; 
+            padding-top: 15px; 
+            border-top: 1px dashed #eee; 
+            display: flex; flex-direction: column; gap: 10px; 
+        }
+        .search-box { display: flex; gap: 8px; }
+        .search-box input { 
+            flex: 1; padding: 10px 15px; border-radius: 10px; border: 1px solid #ddd; 
+            outline: none; font-family: 'Pretendard', sans-serif; font-size: 0.95rem;
+        }
+        .search-box input:focus { border-color: #8a7360; }
+        .search-box button { 
+            background: #f0ebe1; color: #8a7360; border: none; border-radius: 10px; 
+            padding: 0 15px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .search-box button:hover { background: #e0d7c6; }
+        
+        /* 검색 결과 목록 스타일 */
+        #search-results { 
+            max-height: 80px; overflow-y: auto; font-size: 0.9rem; color: #666; 
+        }
+        .result-item { 
+            cursor: pointer; padding: 5px 10px; border-radius: 6px; margin-bottom: 4px;
+            transition: 0.2s;
+        }
+        .result-item:hover { background-color: #f9f9f9; color: #8a7360; font-weight: 600; }
+
+        .backup-area { margin-top: 15px; display: flex; gap: 10px; }
         .backup-btn { 
             flex: 1; font-size: 0.8rem; background: #f9f9f9; color: #666; 
-            padding: 12px; border: 1px solid #eee; border-radius: 10px; cursor: pointer;
+            padding: 10px; border: 1px solid #eee; border-radius: 10px; cursor: pointer;
         }
 
-        .editor-side { flex: 1.3; }
+        .editor-side { flex: 1.3; display: flex; flex-direction: column; }
         .date-title { font-size: 1.6rem; color: #333; font-weight: 700; margin-bottom: 25px; }
         #image-preview { 
             width: 100%; max-height: 200px; display: none; object-fit: cover; 
@@ -91,8 +120,9 @@
         .save-btn { 
             background-color: #8a7360; color: white; padding: 16px; 
             border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; 
-            cursor: pointer; margin-top: 20px; width: 100%; 
+            cursor: pointer; margin-top: 20px; width: 100%; transition: 0.3s;
         }
+        .save-btn:hover { background-color: #705c4c; }
     </style>
 </head>
 <body>
@@ -117,6 +147,15 @@
             <div class="day-name sun">일</div><div class="day-name">월</div><div class="day-name">화</div>
             <div class="day-name">수</div><div class="day-name">목</div><div class="day-name">금</div><div class="day-name sat">토</div>
         </div>
+        
+        <div class="search-area">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="일기 내용 검색 (예: 왕밤빵)" onkeypress="if(event.keyCode==13) searchDiary()">
+                <button onclick="searchDiary()">검색</button>
+            </div>
+            <div id="search-results"></div>
+        </div>
+
         <div class="backup-area">
             <button class="backup-btn" onclick="exportData()">💾 백업하기</button>
             <button class="backup-btn" onclick="document.getElementById('import-input').click()">📂 불러오기</button>
@@ -128,7 +167,7 @@
         <div class="date-title" id="selected-date-title">날짜를 선택해주세요</div>
         <div class="photo-area">
             <input type="file" id="image-input" accept="image/*" style="display:none;">
-            <button class="save-btn" style="background:#f4f2ee; color:#666; margin-bottom:10px;" onclick="document.getElementById('image-input').click()">📷 사진 추가</button>
+            <button class="save-btn" style="background:#f4f2ee; color:#666; margin-bottom:10px; padding: 12px;" onclick="document.getElementById('image-input').click()">📷 사진 추가</button>
             <img id="image-preview" src="" alt="사진 미리보기">
         </div>
         <textarea id="diary-content" placeholder="오늘의 기록을 남겨보세요..."></textarea>
@@ -137,7 +176,6 @@
 </div>
 
 <script>
-    // 요청하신 비밀번호로 설정되었습니다.
     let diaryPassword = "Fotvlfzh25@"; 
 
     function checkPassword() {
@@ -153,7 +191,7 @@
     }
 
     let diaryData = JSON.parse(localStorage.getItem('aestheticDiaryData')) || {};
-    let currentDate = new Date(2026, 3, 1); 
+    let currentDate = new Date(2026, 3, 1); // 2026년 4월 기준
     let selectedDateKey = "";
     
     const yearSelect = document.getElementById('year-select');
@@ -171,8 +209,10 @@
         document.getElementById('month-display').innerText = (month + 1) + "월";
         const grid = document.getElementById('calendar-grid');
         while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+        
         const firstDay = new Date(year, month, 1).getDay(); 
         const lastDate = new Date(year, month + 1, 0).getDate(); 
+        
         for (let i = 0; i < firstDay; i++) {
             let emptyDiv = document.createElement('div');
             emptyDiv.className = 'date-cell empty';
@@ -182,16 +222,20 @@
             let dateDiv = document.createElement('div');
             dateDiv.className = 'date-cell';
             dateDiv.innerText = i;
+            
             let dayOfWeek = new Date(year, month, i).getDay();
             if (dayOfWeek === 0) dateDiv.style.color = "#d97777";
             if (dayOfWeek === 6) dateDiv.style.color = "#6b8bb8";
+            
             let dateKey = `${year}-${month + 1}-${i}`;
             if(diaryData[dateKey]) dateDiv.classList.add('has-diary');
+            
             dateDiv.onclick = function() {
                 document.querySelectorAll('.date-cell').forEach(el => el.classList.remove('selected'));
                 dateDiv.classList.add('selected'); 
                 selectedDateKey = dateKey;
                 document.getElementById('selected-date-title').innerText = `${year}년 ${month + 1}월 ${i}일`;
+                
                 if(diaryData[selectedDateKey]) {
                     document.getElementById('diary-content').value = diaryData[selectedDateKey].text;
                     if(diaryData[selectedDateKey].photo) {
@@ -211,6 +255,51 @@
 
     function changeYear() { currentDate.setFullYear(parseInt(document.getElementById('year-select').value)); renderCalendar(); }
     function changeMonth(direction) { currentDate.setMonth(currentDate.getMonth() + direction); renderCalendar(); }
+
+    // ★ 검색 기능 자바스크립트 ★
+    function searchDiary() {
+        const query = document.getElementById('search-input').value.trim();
+        const resultsDiv = document.getElementById('search-results');
+        resultsDiv.innerHTML = ""; // 검색 결과 초기화
+
+        if (!query) {
+            resultsDiv.innerHTML = "검색어를 입력해주세요.";
+            return;
+        }
+
+        let foundDates = [];
+        // 저장된 데이터 전체를 뒤져서 검색어가 포함된 날짜 찾기
+        for (let dateKey in diaryData) {
+            if (diaryData[dateKey].text && diaryData[dateKey].text.includes(query)) {
+                foundDates.push(dateKey);
+            }
+        }
+
+        if (foundDates.length === 0) {
+            resultsDiv.innerHTML = "일치하는 기록이 없습니다.";
+        } else {
+            // 결과 목록 화면에 뿌려주기
+            foundDates.forEach(dateStr => {
+                const parts = dateStr.split('-');
+                let item = document.createElement('div');
+                item.className = 'result-item';
+                item.innerText = `🔍 ${parts[0]}년 ${parts[1]}월 ${parts[2]}일 일기`;
+                
+                // 검색 결과 클릭 시 그 날짜로 달력 이동하고 일기 열기
+                item.onclick = function() {
+                    currentDate = new Date(parts[0], parseInt(parts[1]) - 1, 1);
+                    renderCalendar();
+                    setTimeout(() => {
+                        const cells = document.querySelectorAll('.date-cell:not(.empty)');
+                        cells.forEach(cell => {
+                            if(cell.innerText === parts[2]) cell.click();
+                        });
+                    }, 50);
+                };
+                resultsDiv.appendChild(item);
+            });
+        }
+    }
 
     document.getElementById('image-input').addEventListener('change', function(event) {
         const file = event.target.files[0];
