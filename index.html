@@ -2,46 +2,115 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>나만의 평생 일기장</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 감성 일기장</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+
     <style>
-        body { font-family: 'Apple SD Gothic Neo', sans-serif; background-color: #f0e6d6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { display: flex; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; width: 1000px; height: 650px; }
-        .calendar-left { flex: 1; padding: 30px; border-right: 1px solid #eee; background-color: #fdf5e6; display: flex; flex-direction: column; }
-        .cal-header { text-align: center; margin-bottom: 20px; }
-        .year-select { font-size: 1.2rem; font-weight: bold; padding: 5px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; text-align: center; }
-        .month-control { display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1.5rem; font-weight: bold; color: #c0392b; }
-        .month-control button { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #c0392b; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; flex-grow: 1; }
-        .day-name { font-weight: bold; color: #555; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 10px; }
-        .sun { color: red; } .sat { color: blue; }
-        .date-cell { padding: 15px 5px; cursor: pointer; border-radius: 8px; font-size: 1.1rem; transition: 0.2s; position: relative; }
-        .date-cell:hover:not(.empty) { background-color: #e0d5c0; }
-        .date-cell.selected { background-color: #c0392b; color: white; font-weight: bold; }
-        .has-diary::after { content: '●'; color: #c0392b; font-size: 0.6rem; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); }
-        .diary-right { flex: 1.2; padding: 40px; display: flex; flex-direction: column; background-color: #ffffff; }
-        .date-title { font-size: 1.8rem; color: #c0392b; border-bottom: 2px solid #c0392b; padding-bottom: 10px; margin-bottom: 20px; }
-        .photo-area { margin-bottom: 15px; }
-        #image-input { display: none; }
-        .photo-btn { background-color: #555; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
-        #image-preview { width: 100%; max-height: 180px; display: none; object-fit: contain; background-color: #f9f9f9; border: 1px dashed #ccc; border-radius: 8px; margin-bottom: 10px; }
-        textarea { flex-grow: 1; width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 15px; font-size: 1.1rem; resize: none; background-color: #fafafa; line-height: 1.6; box-sizing: border-box; }
-        .save-btn { background-color: #c0392b; color: white; padding: 15px; border: none; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 15px; width: 100%; }
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            background-color: #f4f2ee; 
+            color: #333; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+
+        /* 암호 화면 */
+        #login-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #f4f2ee; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            z-index: 1000; 
+        }
+        #login-screen h2 { color: #8a7360; font-weight: 600; margin-bottom: 20px; }
+        #login-screen input { 
+            padding: 15px 20px; font-size: 1.2rem; border-radius: 12px; 
+            border: 1px solid #ddd; text-align: center; margin-bottom: 20px; 
+            width: 250px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); outline: none;
+        }
+        #login-screen button { 
+            padding: 12px 40px; font-size: 1.1rem; background: #8a7360; color: white; 
+            border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; font-weight: 600;
+        }
+
+        /* 메인 레이아웃 */
+        .app-wrapper { display: none; gap: 25px; width: 1050px; height: 650px; }
+        .card { 
+            background: white; 
+            border-radius: 24px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.04); 
+            padding: 40px; 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        .calendar-side { flex: 1; }
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .year-select { font-size: 1.2rem; font-weight: 700; color: #555; border: none; outline: none; background: transparent; cursor: pointer; }
+        .month-control { display: flex; align-items: center; gap: 15px; font-size: 1.4rem; font-weight: 700; color: #8a7360; }
+        .month-control button { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #8a7360; }
+
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center; flex-grow: 1; }
+        .day-name { font-weight: 600; color: #999; font-size: 0.9rem; margin-bottom: 10px; }
+        .sun { color: #d97777; } .sat { color: #6b8bb8; }
         
-        /* 백업 버튼 스타일 */
-        .backup-area { margin-top: 10px; display: flex; gap: 5px; }
-        .backup-btn { flex: 1; font-size: 0.8rem; background: #eee; color: #555; padding: 5px; border: 1px solid #ccc; cursor: pointer; }
+        .date-cell { 
+            display: flex; justify-content: center; align-items: center; 
+            height: 40px; cursor: pointer; border-radius: 50%; 
+            font-size: 1.05rem; transition: 0.2s; position: relative; font-weight: 500;
+        }
+        .date-cell:hover:not(.empty) { background-color: #f0ebe1; }
+        .date-cell.selected { background-color: #8a7360; color: white; font-weight: 700; }
+        .has-diary::after { 
+            content: ''; width: 5px; height: 5px; background-color: #d97777; 
+            border-radius: 50%; position: absolute; bottom: 2px; 
+        }
+
+        .backup-area { margin-top: 20px; display: flex; gap: 10px; }
+        .backup-btn { 
+            flex: 1; font-size: 0.8rem; background: #f9f9f9; color: #666; 
+            padding: 12px; border: 1px solid #eee; border-radius: 10px; cursor: pointer;
+        }
+
+        .editor-side { flex: 1.3; }
+        .date-title { font-size: 1.6rem; color: #333; font-weight: 700; margin-bottom: 25px; }
+        #image-preview { 
+            width: 100%; max-height: 200px; display: none; object-fit: cover; 
+            border-radius: 16px; margin-bottom: 15px; 
+        }
+
+        textarea { 
+            flex-grow: 1; width: 100%; border: 1px solid #eee; border-radius: 16px; 
+            padding: 20px; font-size: 1.1rem; resize: none; background-color: #faf9f7; 
+            line-height: 1.7; box-sizing: border-box; outline: none; font-family: 'Pretendard', sans-serif;
+        }
+
+        .save-btn { 
+            background-color: #8a7360; color: white; padding: 16px; 
+            border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; 
+            cursor: pointer; margin-top: 20px; width: 100%; 
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="calendar-left">
+<div id="login-screen">
+    <h2>비밀번호를 입력하세요</h2>
+    <input type="password" id="pw-input" placeholder="Password" onkeypress="if(event.keyCode==13) checkPassword()">
+    <button onclick="checkPassword()">입장하기</button>
+</div>
+
+<div class="app-wrapper" id="main-diary">
+    <div class="card calendar-side">
         <div class="cal-header">
             <select class="year-select" id="year-select" onchange="changeYear()"></select>
             <div class="month-control">
-                <button onclick="changeMonth(-1)">◀</button>
+                <button onclick="changeMonth(-1)">❮</button>
                 <span id="month-display">4월</span>
-                <button onclick="changeMonth(1)">▶</button>
+                <button onclick="changeMonth(1)">❯</button>
             </div>
         </div>
         <div class="cal-grid" id="calendar-grid">
@@ -49,30 +118,44 @@
             <div class="day-name">수</div><div class="day-name">목</div><div class="day-name">금</div><div class="day-name sat">토</div>
         </div>
         <div class="backup-area">
-            <button class="backup-btn" onclick="exportData()">💾 백업(파일저장)</button>
+            <button class="backup-btn" onclick="exportData()">💾 백업하기</button>
             <button class="backup-btn" onclick="document.getElementById('import-input').click()">📂 불러오기</button>
             <input type="file" id="import-input" style="display:none" onchange="importData(event)">
         </div>
     </div>
 
-    <div class="diary-right">
-        <div class="date-title" id="selected-date-title">날짜를 선택하세요</div>
+    <div class="card editor-side">
+        <div class="date-title" id="selected-date-title">날짜를 선택해주세요</div>
         <div class="photo-area">
-            <input type="file" id="image-input" accept="image/*">
-            <button class="photo-btn" onclick="document.getElementById('image-input').click()">📷 사진 추가</button>
+            <input type="file" id="image-input" accept="image/*" style="display:none;">
+            <button class="save-btn" style="background:#f4f2ee; color:#666; margin-bottom:10px;" onclick="document.getElementById('image-input').click()">📷 사진 추가</button>
             <img id="image-preview" src="" alt="사진 미리보기">
         </div>
-        <textarea id="diary-content" placeholder="이 날의 일기를 적어보세요..."></textarea>
-        <button class="save-btn" onclick="saveDiary()">일기 저장하기</button>
+        <textarea id="diary-content" placeholder="오늘의 기록을 남겨보세요..."></textarea>
+        <button class="save-btn" onclick="saveDiary()">기록 저장하기</button>
     </div>
 </div>
 
 <script>
-    let diaryData = JSON.parse(localStorage.getItem('myDiaryData')) || {};
+    // 요청하신 비밀번호로 설정되었습니다.
+    let diaryPassword = "Fotvlfzh25@"; 
+
+    function checkPassword() {
+        const input = document.getElementById('pw-input').value;
+        if (input === diaryPassword) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-diary').style.display = 'flex';
+            renderCalendar();
+        } else {
+            alert("비밀번호가 틀렸습니다.");
+            document.getElementById('pw-input').value = "";
+        }
+    }
+
+    let diaryData = JSON.parse(localStorage.getItem('aestheticDiaryData')) || {};
     let currentDate = new Date(2026, 3, 1); 
     let selectedDateKey = "";
     
-    // 연도 선택 드롭다운 채우기
     const yearSelect = document.getElementById('year-select');
     for (let i = 2020; i <= 2050; i++) {
         let option = document.createElement('option');
@@ -100,8 +183,8 @@
             dateDiv.className = 'date-cell';
             dateDiv.innerText = i;
             let dayOfWeek = new Date(year, month, i).getDay();
-            if (dayOfWeek === 0) dateDiv.style.color = "red";
-            if (dayOfWeek === 6) dateDiv.style.color = "blue";
+            if (dayOfWeek === 0) dateDiv.style.color = "#d97777";
+            if (dayOfWeek === 6) dateDiv.style.color = "#6b8bb8";
             let dateKey = `${year}-${month + 1}-${i}`;
             if(diaryData[dateKey]) dateDiv.classList.add('has-diary');
             dateDiv.onclick = function() {
@@ -143,17 +226,16 @@
     });
 
     function saveDiary() {
-        if (!selectedDateKey) return alert("날짜를 선택해주세요!");
+        if (!selectedDateKey) return alert("날짜를 선택해주세요.");
         diaryData[selectedDateKey] = {
             text: document.getElementById('diary-content').value,
             photo: document.getElementById('image-preview').style.display === "block" ? document.getElementById('image-preview').src : null
         };
-        localStorage.setItem('myDiaryData', JSON.stringify(diaryData));
-        alert("저장되었습니다!");
+        localStorage.setItem('aestheticDiaryData', JSON.stringify(diaryData));
+        alert("기록이 저장되었습니다.");
         renderCalendar();
     }
 
-    // 백업 기능: 전체 데이터를 JSON 파일로 다운로드
     function exportData() {
         const dataStr = JSON.stringify(diaryData);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
@@ -164,7 +246,6 @@
         linkElement.click();
     }
 
-    // 불러오기 기능: JSON 파일을 읽어 데이터 복구
     function importData(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -173,17 +254,13 @@
             try {
                 const importedData = JSON.parse(e.target.result);
                 diaryData = importedData;
-                localStorage.setItem('myDiaryData', JSON.stringify(diaryData));
-                alert("일기가 성공적으로 복구되었습니다!");
+                localStorage.setItem('aestheticDiaryData', JSON.stringify(diaryData));
+                alert("일기 데이터를 성공적으로 불러왔습니다.");
                 renderCalendar();
-            } catch (err) {
-                alert("올바른 백업 파일이 아닙니다.");
-            }
+            } catch (err) { alert("올바른 백업 파일이 아닙니다."); }
         };
         reader.readAsText(file);
     }
-
-    renderCalendar();
 </script>
 </body>
 </html>
